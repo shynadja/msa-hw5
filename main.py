@@ -1,32 +1,34 @@
 import requests
 
-def get_text(url):
-    response = requests.get(url)
-    return response.text
+# Хранит текст страницы в кэше
+cached_text = None
 
-def count_word_frequencies(url, word):
-    text = get_text(url)
+def get_text(url):
+    """Получение текста страницы."""
+    global cached_text
+    if cached_text is None:
+        response = requests.get(url)
+        cached_text = response.text
+    return cached_text
+
+def count_word_frequencies(text, word):
+    """Подсчет частоты слова в тексте."""
     words = text.split()
-    count = 0
-    for w in words:
-        if w == word:
-            count += 1
-    return count
+    return words.count(word)
 
 def main():
     words_file = "words.txt"
     url = "https://eng.mipt.ru/why-mipt/"
 
-    words_to_count = []
+    # Читаем слова из файла
     with open(words_file, 'r') as file:
-        for line in file:
-            word = line.strip()
-            if word:
-                words_to_count.append(word)
+        words_to_count = [word.strip() for word in file.readlines() if word.strip()]
 
-    frequencies = {}
-    for word in words_to_count:
-        frequencies[word] = count_word_frequencies(url, word)
+    # Получаем текст страницы
+    text = get_text(url)
+
+    # Подсчет частот слов
+    frequencies = {word: count_word_frequencies(text, word) for word in words_to_count}
     
     print(frequencies)
 
